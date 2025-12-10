@@ -1,0 +1,18 @@
+npx hardhat node
+
+npx hardhat run --network localhost scripts/deploy.js
+
+Update .env & pharma_address in constants folder with new contract address    (don't leave the space between quotes and contract address , in Pharma_address )
+
+npm run dev
+
+Register manufacturer
+
+Start adding users/products again
+
+
+
+
+Account #2: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC     distributer / supplier
+Account #3: 0x90F79bf6EB2c4f870365E785982E1f101E93b906     retailer
+Account #5: 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc      customer

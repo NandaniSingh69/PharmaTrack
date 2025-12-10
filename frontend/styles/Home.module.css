@@ -1,0 +1,8 @@
+.landingpage {
+  background-color: #11284b;
+  -webkit-background-size: cover;
+  background-size: cover;
+  -webkit-background-position: center;
+  background-position: center;
+  background-image: linear-gradient(250deg, rgba(130, 201, 30, 0) 0%, #000000 70%),url(/bg.png);
+}
