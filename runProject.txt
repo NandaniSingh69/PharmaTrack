@@ -1,0 +1,98 @@
+npx hardhat node
+
+npx hardhat run --network localhost scripts/deploy.js
+
+Update .env & pharma_address in constants folder with new contract address    (don't leave the space between quotes and contract address , in Pharma_address )
+
+npm run dev
+
+Register manufacturer
+
+Start adding users/products again
+
+
+
+
+Account #2: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC     distributer / supplier
+Account #3: 0x90F79bf6EB2c4f870365E785982E1f101E93b906     retailer
+Account #5: 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc      customer
+
+
+
+3. Safety & interaction awareness
+You already import sideEffects and drugInteractions:
+
+On the alternatives detail page, show:
+
+Key side effects (first 3–5 in a bullet list).
+
+Basic interaction warning if drugInteractions is not empty.
+
+Add a simple rule‑based warning:
+
+If a user selects two medicines (checkboxes), show “Possible interaction” if they share interaction entries.
+
+Show a small disclaimer at the bottom (“Not a medical prescription, for educational/demo purposes only”).
+
+Papers on medicine recommendation stress using interactions and contraindications to screen recommendations.
+​
+
+4. Blockchain-authenticated QR verification
+Connect your new feature more tightly with the blockchain supply chain:
+
+For each on‑chain product, generate a QR code that encodes:
+
+barcodeId
+
+Name + manufacturer
+
+Create a /verify page:
+
+User scans/enters barcode
+
+Frontend:
+
+Calls smart contract getSingleItem(barcodeId) to verify authenticity and history.
+
+Then calls your MongoDB API to fetch composition + alternatives.
+
+Show:
+
+On‑chain timeline (manufacturer → distributor → retailer → customer).
+
+“Verified on blockchain” badge vs “Not found / suspicious”.
+
+This matches how blockchain is proposed to fight counterfeit drugs and provide end‑to‑end traceability.
+​
+
+5. Inventory/availability awareness
+Even without a real pharmacy backend, you can simulate availability:
+
+Add a stockStatus field in MongoDB (e.g., “In stock”, “Low stock”, “Out of stock”).
+
+On alternatives page, show availability badge and allow filter:
+
+“Hide out‑of‑stock”
+
+For on‑chain products, you already have quantity; you can:
+
+Decrease quantity when sellItem is called.
+
+Mark “Low stock” when quantity is below threshold.
+
+Better inventory visibility and real‑time tracking is a key benefit of blockchain pharma supply chains.
+​
+
+6. Small but impactful polish
+A few extra touches that will impress in a portfolio/demo:
+
+Saved medicines / bookmarks: Allow a user (by wallet address) to save a medicine or alternative list in localStorage or a lightweight DB.
+
+Export comparison as PDF: Generate a simple PDF of the comparison table for printing or sharing.
+
+Search history & popular searches: Track which medicines are searched most and show “Trending medicines”.
+
+All of these are realistic features that connect well to real products like generic‑comparison portals and blockchain traceability dashboards.
+​
+
+If you tell which direction you like more—price focus, safety/clinical info, or blockchain/traceability—the next step can be a concrete mini‑roadmap with exact fields, APIs, and UI changes.
