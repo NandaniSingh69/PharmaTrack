@@ -135,22 +135,29 @@ contract Accounts {
 
 //    get list of all the account added by current account
     function getMyPartyList(address user_id)
-        internal
-        view
-        returns (Types.AccountDetails[] memory accountsList_)
-    {
-        require(user_id != address(0), "user_id is empty");
-        if (get(user_id).role == Types.AccountRole.Manufacturer) {
-            accountsList_ = manufacturerDistributorsList[user_id];
-        } else if (get(user_id).role == Types.AccountRole.Distributor) {
-            accountsList_ = distributorRetailersList[user_id];
-        } else if (get(user_id).role == Types.AccountRole.Retailer) {
-            accountsList_ = retailerCustomersList[user_id];
-        } else {
-            // Customer flow is not supported yet
-            revert("Not valid operation");
-        }
+    internal
+    view
+    returns (Types.AccountDetails[] memory accountsList_)
+{
+    require(user_id != address(0), "user_id is empty");
+    
+    // Return empty array if account doesn't exist yet
+    if (accounts[user_id].accountId == address(0)) {
+        return accountsList_;
     }
+    
+    if (get(user_id).role == Types.AccountRole.Manufacturer) {
+        accountsList_ = manufacturerDistributorsList[user_id];
+    } else if (get(user_id).role == Types.AccountRole.Distributor) {
+        accountsList_ = distributorRetailersList[user_id];
+    } else if (get(user_id).role == Types.AccountRole.Retailer) {
+        accountsList_ = retailerCustomersList[user_id];
+    } else {
+        // Customer has no party list - return empty array
+        return accountsList_;
+    }
+}
+
 
     //  get account details
     function getPartyDetails(address user_id)

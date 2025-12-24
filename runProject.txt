@@ -96,3 +96,8 @@ All of these are realistic features that connect well to real products like gene
 ​
 
 If you tell which direction you like more—price focus, safety/clinical info, or blockchain/traceability—the next step can be a concrete mini‑roadmap with exact fields, APIs, and UI changes.
+
+
+
+
+http://localhost:3000/verify?barcodeId=5901234123457

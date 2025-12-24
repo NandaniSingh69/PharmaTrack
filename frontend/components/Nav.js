@@ -48,7 +48,7 @@ function Nav() {
       <div className='flex justify-between items-center p-4 md:w-10/12 md:mx-auto'>
         <div>
           <Image className='w-40 cursor-pointer' src={logo} alt="logo" />
-          <p className='flex justify-end text-xs text-white font-normal pl-2 cursor-pointer'>by Team201</p>
+          <p className='flex justify-end text-xs text-white font-normal pl-2 cursor-pointer'>by Team G9</p>
         </div>
         <div className='hidden md:flex'>
           <ul className='text-white flex space-x-4'>

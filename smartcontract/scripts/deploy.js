@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 async function main() {
   // Deploy the TrackPharma contract
   const TrackPharma = await ethers.getContractFactory("TrackPharma");
-  const pharma = await TrackPharma.deploy("Team201", "Team201projects@gmail.com");
+  const pharma = await TrackPharma.deploy("YourTeamName", "yourteam@example.com");
   await pharma.deployed();
 
   // Print the contract address

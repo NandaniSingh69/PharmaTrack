@@ -66,50 +66,59 @@ function UsersIndex() {
 
 
 
-  const saveUser = async (user) => {
-    try {
-      if (!walletConnected) {
-        alert("Please connect your wallet");
-        return;
-      }
-
-      // Validate and checksum address
-      user.accountId = ethers.utils.getAddress(user.accountId);
-
-      // Validate selected role is allowed
-      const allowed = allowedRolesToAdd();
-      const requestedRole = Number(user.role);
-      if (!allowed.includes(requestedRole)) {
-        alert("You are not allowed to create this role.");
-        return;
-      }
-
-      setLoading(true);
-      const signer = await getProviderOrSigner(true);
-      const contractInstance = new Contract(PHARMA_ADDRESS, PHARMA_ABI, signer);
-
-      // Build the Types.AccountDetails struct object
-      const accountStruct = {
-        role: requestedRole,
-        accountId: user.accountId,
-        name: user.name,
-        email: user.email
-      };
-
-      const tx = await contractInstance.addParty(accountStruct);
-      await tx.wait();
-
-      setLoading(false);
-      reset();
-      await getMyAccountsList();
-      alert("User added successfully!");
-
-    } catch (error) {
-      console.log('Could not add user', error);
-      alert("Failed to add user: " + (error.message || error));
-      setLoading(false);
+  const saveUser = async (formData) => {  // Renamed parameter for clarity
+  try {
+    if (!walletConnected) {
+      alert("Please connect your wallet");
+      return;
     }
-  };
+
+    console.log('Form data received:', formData);  // Debug log
+
+    // Validate and checksum address
+    const checksummedAddress = ethers.utils.getAddress(formData.accountId);
+
+    // Validate selected role is allowed
+    const allowed = allowedRolesToAdd();
+    const requestedRole = Number(formData.role);
+    
+    console.log('Allowed roles:', allowed);  // Debug log
+    console.log('Requested role:', requestedRole);  // Debug log
+    
+    if (!allowed.includes(requestedRole)) {
+      alert("You are not allowed to create this role.");
+      return;
+    }
+
+    setLoading(true);
+    const signer = await getProviderOrSigner(true);
+    const contractInstance = new Contract(PHARMA_ADDRESS, PHARMA_ABI, signer);
+
+    // Build the Types.AccountDetails struct object
+    const accountStruct = {
+      role: requestedRole,
+      accountId: checksummedAddress,  // ✅ Now using the checksummed address
+      name: formData.name,
+      email: formData.email
+    };
+
+    console.log('Sending to contract:', accountStruct);  // Debug log
+
+    const tx = await contractInstance.addParty(accountStruct);
+    await tx.wait();
+
+    setLoading(false);
+    reset();
+    await getMyAccountsList();
+    alert("User added successfully!");
+
+  } catch (error) {
+    console.log('Error adding user:', error);
+    alert("Failed to add user: " + (error.reason || error.message || error));
+    setLoading(false);
+  }
+};
+
 
   // Replace getMyAccountsList with this
 const getMyAccountsList = async () => {

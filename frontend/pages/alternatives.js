@@ -124,94 +124,102 @@ export default function Alternatives() {
           </div>
         )}
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Search Results ({searchResults.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {searchResults.map((medicine) => (
-                <div
-                  key={medicine._id}
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-200"
-                >
-                  {/* Medicine Name */}
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {medicine.name}
-                  </h3>
-
-                  {/* Composition */}
-                  <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-700">Composition:</p>
-                    <p className="text-sm text-gray-600">{medicine.composition}</p>
-                  </div>
-
-                  {/* Ingredients */}
-                  {medicine.ingredients && medicine.ingredients.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-700">Active Ingredients:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {medicine.ingredients.map((ing, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                          >
-                            {ing}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Manufacturer */}
-                  <div className="mb-3">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Manufacturer:</span> {medicine.manufacturer}
-                    </p>
-                  </div>
-
-                  {/* Price & Category */}
-                  {/* Price & Category */}
-<div className="flex justify-between items-center mb-4">
+    {/* Search Results */}
+{searchResults.length > 0 && (
   <div>
-    {typeof medicine.price === 'number' && medicine.price > 0 ? (
-      <p className="text-lg font-bold text-green-600">
-        ₹{Number(medicine.price).toFixed(2)}
-      </p>
-    ) : (
-      <p className="text-sm text-gray-500">Price not available</p>
-    )}
-  </div>
-  <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-    {medicine.category}
-  </span>
-</div>
+    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+      Search Results ({searchResults.length})
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+      {searchResults.map((medicine) => (
+        <div
+          key={medicine._id}
+          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-200 flex flex-col h-full"
+        >
+          {/* Content Wrapper - will grow to fill space */}
+          <div className="flex-grow">
+            {/* Medicine Name */}
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {medicine.name}
+            </h3>
 
-
-                  {/* Prescription Badge */}
-                  {medicine.prescriptionRequired && (
-                    <div className="mb-4">
-                      <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
-                        ⚕️ Prescription Required
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Find Alternatives Button */}
-                     {/* Find Alternatives Button */}
-    <button
-      onClick={() => router.push(`/alternatives/${medicine._id}`)}
-      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 mt-4"
-    >
-      Find Alternatives
-    </button>
-  </div>
-))}
-
+            {/* Composition */}
+            <div className="mb-3">
+              <p className="text-sm font-medium text-gray-700">Composition:</p>
+              <p className="text-sm text-gray-600">{medicine.composition}</p>
             </div>
+
+            {/* Ingredients */}
+            {medicine.ingredients && medicine.ingredients.length > 0 && (
+              <div className="mb-3">
+                <p className="text-sm font-medium text-gray-700">Active Ingredients:</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {medicine.ingredients.map((ing, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                    >
+                      {ing}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Manufacturer */}
+            <div className="mb-3">
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Manufacturer:</span> {medicine.manufacturer}
+              </p>
+            </div>
+
+            {/* Price & Category */}
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                {typeof medicine.price === 'number' && medicine.price > 0 ? (
+                  <p className="text-lg font-bold text-green-600">
+                    ₹{Number(medicine.price).toFixed(2)}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-500">Price not available</p>
+                )}
+              </div>
+              <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                {medicine.category}
+              </span>
+            </div>
+
+            {/* Prescription Badge */}
+            {medicine.prescriptionRequired && (
+              <div className="mb-4">
+                <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
+                  ⚕️ Prescription Required
+                </span>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* View Details Button - stays at bottom */}
+          <button
+            onClick={() => router.push(`/alternatives/${medicine._id}`)}
+            className="w-full bg-gradient-to-r from-pharmaGreen-700 to-pharmaGreen-900 hover:from-pharmaGreen-800 hover:to-pharmaGreen-950 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 mt-4 flex items-center justify-center gap-2 group"
+          >
+            <span>View Details</span>
+            <svg 
+              className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
         {/* No Results */}
         {!loading && searchResults.length === 0 && searchQuery && (
