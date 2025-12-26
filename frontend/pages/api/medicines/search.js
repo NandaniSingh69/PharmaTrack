@@ -34,16 +34,37 @@ export default async function handler(req, res) {
       filter.price = { $lte: parseFloat(maxPrice) };
     }
 
-    // Execute search
-    const medicines = await Medicine.find(filter)
-      .limit(parseInt(limit))
+    // Execute search - get more results to account for deduplication
+    let medicines = await Medicine.find(filter)
+      .limit(parseInt(limit) * 3) // ✅ Get 3x more to compensate for duplicates
       .select('name composition ingredients manufacturer price category prescriptionRequired subCategory')
       .lean();
 
+    console.log('Search results before dedup:', medicines.length);
+
+    // ✅ Deduplicate by name + ingredients
+    const uniqueByKey = new Map();
+    for (const medicine of medicines) {
+      const ingredientsKey = (medicine.ingredients || [])
+        .map(i => i.toLowerCase().trim())
+        .sort()
+        .join('|');
+      const key = `${medicine.name.toLowerCase().trim()}::${ingredientsKey}`;
+      
+      if (!uniqueByKey.has(key)) {
+        uniqueByKey.set(key, medicine);
+      }
+    }
+    
+    // ✅ Convert back to array and limit to requested amount
+    const dedupedMedicines = Array.from(uniqueByKey.values()).slice(0, parseInt(limit));
+
+    console.log('Search results after dedup:', dedupedMedicines.length);
+
     return res.status(200).json({
       success: true,
-      count: medicines.length,
-      data: medicines,
+      count: dedupedMedicines.length,
+      data: dedupedMedicines, // ✅ Use dedupedMedicines instead of medicines
     });
 
   } catch (error) {

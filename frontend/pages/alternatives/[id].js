@@ -45,6 +45,10 @@ export default function MedicineAlternatives() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [interactionMessage, setInteractionMessage] = useState(null);
 
+  // AI Explanation states
+  const [aiExplanations, setAiExplanations] = useState({});
+  const [loadingExplanations, setLoadingExplanations] = useState({});
+
   const toggleSelect = (alt) => {
     setSelectedIds((prev) => {
       const exists = prev.includes(alt.medicine._id);
@@ -55,65 +59,126 @@ export default function MedicineAlternatives() {
     });
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchAlternatives();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const fetchAlternatives = async () => {
-    setLoading(true);
-    setError(null);
-    setInteractionMessage(null);
-    setSelectedIds([]);
+  // Get AI Explanation
+  const getAIExplanation = async (alt) => {
+    if (aiExplanations[alt.medicine._id]) return; // Already loaded
+    
+    setLoadingExplanations(prev => ({ ...prev, [alt.medicine._id]: true }));
 
     try {
-      const response = await fetch(
-        `/api/medicines/alternatives?medicineId=${id}&maxResults=10&minScore=0.3`
-      );
-      const data = await response.json();
+      const response = await fetch('/api/ai-explanation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalMedicine: {
+            name: targetMedicine.name,
+            composition: targetMedicine.composition
+          },
+          alternative: {
+            name: alt.medicine.name,
+            composition: alt.medicine.composition
+          },
+          commonIngredients: alt.comparison.commonIngredients || []
+        })
+      });
 
+      const data = await response.json();
+      
       if (data.success) {
-        // Parse target medicine
-        const parsedTarget = {
-          ...data.targetMedicine,
+        setAiExplanations(prev => ({
+          ...prev,
+          [alt.medicine._id]: data.explanation
+        }));
+      } else {
+        setAiExplanations(prev => ({
+          ...prev,
+          [alt.medicine._id]: 'Unable to generate explanation at this time.'
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to get AI explanation:', error);
+      setAiExplanations(prev => ({
+        ...prev,
+        [alt.medicine._id]: 'Error generating explanation. Please try again.'
+      }));
+    } finally {
+      setLoadingExplanations(prev => ({ ...prev, [alt.medicine._id]: false }));
+    }
+  };
+
+useEffect(() => {
+  if (!router.isReady) return;
+  
+  if (id) {
+    fetchAlternatives();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [id, router.isReady]); // Disable warning for fetchAlternatives
+
+
+const fetchAlternatives = async () => {
+  setLoading(true);
+  setError(null);
+  setInteractionMessage(null);
+  setSelectedIds([]);
+
+  try {
+    const response = await fetch(
+      `/api/medicines/alternatives?medicineId=${id}&maxResults=10&minScore=0.3`
+    );
+    const data = await response.json();
+
+    // DEBUG: Log the response
+    console.log('API Response:', {
+      success: data.success,
+      alternativesCount: data.alternatives?.length,
+      firstAlt: data.alternatives?.[0],
+      medicineName: data.alternatives?.[0]?.medicine?.name
+    });
+
+    if (data.success) {
+      const parsedTarget = {
+        ...data.targetMedicine,
+        parsedInteractions: parseDrugInteractions(
+          data.targetMedicine.drugInteractions
+        ),
+        sideEffectsList: (data.targetMedicine.sideEffects || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      };
+
+      const parsedAlternatives = data.alternatives.map((alt) => ({
+        ...alt,
+        medicine: {
+          ...alt.medicine,
           parsedInteractions: parseDrugInteractions(
-            data.targetMedicine.drugInteractions
+            alt.medicine.drugInteractions
           ),
-          sideEffectsList: (data.targetMedicine.sideEffects || '')
+          sideEffectsList: (alt.medicine.sideEffects || '')
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean),
-        };
+        },
+      }));
 
-        // Parse alternatives
-        const parsedAlternatives = data.alternatives.map((alt) => ({
-          ...alt,
-          medicine: {
-            ...alt.medicine,
-            parsedInteractions: parseDrugInteractions(
-              alt.medicine.drugInteractions
-            ),
-            sideEffectsList: (alt.medicine.sideEffects || '')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean),
-          },
-        }));
+      // DEBUG: Log parsed data
+      console.log('Parsed alternatives:', parsedAlternatives.length);
+      console.log('First parsed medicine:', parsedAlternatives[0]?.medicine?.name);
 
-        setTargetMedicine(parsedTarget);
-        setAlternatives(parsedAlternatives);
-      } else {
-        setError(data.message || 'Failed to fetch alternatives');
-      }
-    } catch (err) {
-      setError('Failed to load alternatives. Please try again.');
-      console.error('Alternatives error:', err);
-    } finally {
-      setLoading(false);
+      setTargetMedicine(parsedTarget);
+      setAlternatives(parsedAlternatives);
+    } else {
+      setError(data.message || 'Failed to fetch alternatives');
     }
-  };
+  } catch (err) {
+    setError('Failed to load alternatives. Please try again.');
+    console.error('Alternatives error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return (
@@ -358,7 +423,7 @@ export default function MedicineAlternatives() {
                               </div>
                             </div>
 
-                            {/* Common Ingredients - FIXED */}
+                            {/* Common Ingredients */}
                             {alt.comparison.commonIngredients && alt.comparison.commonIngredients.length > 0 && (
                               <div className="flex items-start">
                                 <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 text-green-600 text-xs font-medium mr-3 mt-0.5 flex-shrink-0">
@@ -379,6 +444,54 @@ export default function MedicineAlternatives() {
                                 </div>
                               </div>
                             )}
+
+                            {/* AI Explanation Section - NEW HYBRID FEATURE */}
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <p className="text-sm font-semibold text-purple-900 flex items-center">
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                  </svg>
+                                  AI-Powered Analysis
+                                </p>
+                                
+                                {!aiExplanations[alt.medicine._id] && !loadingExplanations[alt.medicine._id] && (
+                                  <button
+                                    onClick={() => getAIExplanation(alt)}
+                                    className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full transition-colors font-medium flex items-center gap-1"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Get Explanation
+                                  </button>
+                                )}
+                              </div>
+
+                              {loadingExplanations[alt.medicine._id] && (
+                                <div className="flex items-center text-sm text-purple-700">
+                                  <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Generating AI explanation...
+                                </div>
+                              )}
+
+                              {aiExplanations[alt.medicine._id] && (
+                                <div className="bg-white/60 rounded p-3 border border-purple-100">
+                                  <p className="text-sm text-purple-900 leading-relaxed">
+                                    {aiExplanations[alt.medicine._id]}
+                                  </p>
+                                </div>
+                              )}
+
+                              {!aiExplanations[alt.medicine._id] && !loadingExplanations[alt.medicine._id] && (
+                                <p className="text-xs text-purple-700 italic">
+                                  Click "Get Explanation" to see AI-generated analysis of why this is a suitable alternative
+                                </p>
+                              )}
+                            </div>
 
                             <div className="flex items-start">
                               <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pharmaGreen-100 text-pharmaGreen-700 text-xs font-medium mr-3 mt-0.5 flex-shrink-0">
@@ -502,7 +615,7 @@ export default function MedicineAlternatives() {
                                 </div>
                               )}
 
-                              {/* FIXED: Ingredient Match Progress Bar */}
+                              {/* Ingredient Match Progress Bar */}
                               <div className="bg-white rounded-lg p-3 border border-gray-200">
                                 <p className="text-xs text-gray-600 mb-2 font-medium">Ingredient Match</p>
                                 <div className="flex items-center">
