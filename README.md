@@ -1,9 +1,5 @@
 # TrackPharma: Blockchain Pharma Trace + AI Inventory
 
-[
-[
-[
-[
 
 ## Overview
 
